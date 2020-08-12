@@ -2,15 +2,20 @@ package me.sofiworker.datastructure.tree;
 
 /**
  * @author sofiworker
- * @date 2020/8/9
+ * @date 2020/8/10
+ * 线索化二叉树
  */
-public class BinaryTree {
+public class ThreadedBinaryTree {
 
     static class Node {
         int no;
         String name;
         Node left;
         Node right;
+        // 0：表示指向的左子树，1：表示前驱节点
+        int leftType;
+        // 0：表示指向的右子树，1：表示后继节点
+        int rightType;
 
         public Node(int no, String name) {
             this.no = no;
@@ -124,6 +129,8 @@ public class BinaryTree {
 
     static class Tree {
         private Node root;
+        // 递归时，该变量保留前一个节点
+        private Node preNode;
 
         public void setRoot(Node root) {
             this.root = root;
@@ -192,39 +199,76 @@ public class BinaryTree {
                 throw new RuntimeException("根节点为空");
             }
         }
+
+        /**
+         * 中序线索化
+         * @param node 节点
+         */
+        private void threadedTree(Node node) {
+            if (node == null) {
+                return;
+            }
+            threadedTree(node.left);
+
+            // 处理前驱节点
+            if (node.left == null) {
+                node.left = preNode;
+                node.leftType = 1;
+            }
+            // 处理后继节点
+            if (preNode != null && preNode.right == null) {
+                preNode.right = node;
+                preNode.rightType = 1;
+            }
+            // 移动 preNode
+            preNode = node;
+            threadedTree(node.right);
+        }
+
+        public void threadedTree() {
+            this.threadedTree(root);
+        }
+
+        // 遍历线索化二叉树的方法
+        public void threadedList() {
+            Node node = root;
+            while (node != null) {
+                // 当 node 的 leftType 为 1，就是左子树最深层
+                while (node.leftType == 0) {
+                    node = node.left;
+                }
+                System.out.println(node);
+                // 如果当前节点的右指针指向的是后继节点，就一直输出
+                while (node.rightType == 1) {
+                    node = node.right;
+                    System.out.println(node);
+                }
+                node = node.right;
+            }
+        }
     }
 
     public static void main(String[] args) {
         Tree tree = new Tree();
-        Node root = new Node(1, "宋江");
-        Node node2 = new Node(2, "吴用");
-        Node node3 = new Node(3, "卢俊义");
-        Node node4 = new Node(4, "林冲");
+        Node root = new Node(1, "tom");
+        Node node2 = new Node(3, "jack");
+        Node node3 = new Node(6, "smith");
+        Node node4 = new Node(8, "mary");
+        Node node5 = new Node(10, "king");
+        Node node6 = new Node(14, "dim");
 
         root.left = node2;
         root.right = node3;
-        node3.right = node4;
+        node2.left = node4;
+        node2.right = node5;
+        node3.left = node6;
 
         tree.setRoot(root);
 
-//        System.out.println("前序遍历：");
-//        tree.preOrder();
-//
-//        tree.deleteNode(4);
-//
-//        System.out.println("前序遍历：");
-//        tree.preOrder();
-//        System.out.println("中序遍历：");
-//        tree.infixOrder();
-//        System.out.println("后序遍历：");
-//        tree.postOrder();
-
-//        System.out.println("前序查找：");
-//        System.out.println(tree.preFind(12));
-//        System.out.println("中序查找：");
-//        System.out.println(tree.infixFind(12));
-//        System.out.println("后序查找：");
-//        System.out.println(tree.postFind(12));
-
+//        System.out.println(node5.left);
+        tree.threadedTree();
+//        System.out.println(node5.left);
+//        System.out.println(node5.right);
+        tree.threadedList();
     }
 }
